@@ -1,0 +1,919 @@
+import React, { useState, useMemo } from 'react';
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, ChefHat, Package, Store, Calendar, Download, Filter, Plus, Utensils, Coffee } from 'lucide-react';
+
+const ChaniagoDashboard = () => {
+  const [activeTab, setActiveTab] = useState('overview');
+  const [dateRange, setDateRange] = useState('month');
+
+  // Data transaksi khusus rumah makan Padang
+  const transactions = [
+    { id: 1, date: '2024-08-20', type: 'income', category: 'Penjualan Dine-in', amount: 2500000, description: 'Penjualan harian dine-in', items: 45 },
+    { id: 2, date: '2024-08-20', type: 'income', category: 'Penjualan Takeaway', amount: 1800000, description: 'Penjualan takeaway & delivery', items: 32 },
+    { id: 3, date: '2024-08-20', type: 'expense', category: 'Bahan Baku', amount: 800000, description: 'Daging sapi, ayam, sayuran', supplier: 'Pasar Raya' },
+    { id: 4, date: '2024-08-21', type: 'expense', category: 'Gaji Karyawan', amount: 450000, description: 'Gaji harian koki & pelayan', staff: 6 },
+    { id: 5, date: '2024-08-21', type: 'income', category: 'Catering', amount: 3200000, description: 'Catering acara pernikahan', portions: 120 },
+    { id: 6, date: '2024-08-21', type: 'expense', category: 'Utilitas', amount: 200000, description: 'Listrik, gas, air', outlet: 'Cabang Utama' },
+    { id: 7, date: '2024-08-22', type: 'expense', category: 'Transportasi', amount: 150000, description: 'Delivery & pembelian bahan', trips: 8 },
+    { id: 8, date: '2024-08-22', type: 'income', category: 'Penjualan Online', amount: 950000, description: 'GoFood & GrabFood', orders: 28 },
+  ];
+
+  const dailySalesData = [
+    { date: '20 Agu', dineIn: 2500000, takeaway: 1800000, online: 950000, catering: 0 },
+    { date: '21 Agu', dineIn: 2800000, takeaway: 1600000, online: 1200000, catering: 3200000 },
+    { date: '22 Agu', dineIn: 3200000, takeaway: 2100000, online: 1400000, catering: 0 },
+    { date: '23 Agu', dineIn: 2900000, takeaway: 1900000, online: 1100000, catering: 1800000 },
+    { date: '24 Agu', dineIn: 3500000, takeaway: 2300000, online: 1600000, catering: 0 },
+    { date: '25 Agu', dineIn: 4200000, takeaway: 2800000, online: 1800000, catering: 2500000 },
+    { date: '26 Agu', dineIn: 3800000, takeaway: 2400000, online: 1500000, catering: 0 },
+  ];
+
+  const menuPerformance = [
+    { menu: 'Rendang Daging', sold: 85, revenue: 3400000, cost: 1700000, profit: 1700000 },
+    { menu: 'Ayam Pop', sold: 72, revenue: 2160000, cost: 1080000, profit: 1080000 },
+    { menu: 'Gulai Kambing', sold: 45, revenue: 2250000, cost: 1350000, profit: 900000 },
+    { menu: 'Dendeng Balado', sold: 38, revenue: 1520000, cost: 760000, profit: 760000 },
+    { menu: 'Ikan Bakar', sold: 55, revenue: 1650000, cost: 990000, profit: 660000 },
+    { menu: 'Sayur Nangka', sold: 92, revenue: 1380000, cost: 460000, profit: 920000 },
+  ];
+
+  const expenseCategories = [
+    { name: 'Bahan Baku', value: 12500000, color: '#8884d8', percentage: 45 },
+    { name: 'Gaji Karyawan', value: 8500000, color: '#82ca9d', percentage: 31 },
+    { name: 'Utilitas', value: 2800000, color: '#ffc658', percentage: 10 },
+    { name: 'Sewa Tempat', value: 2000000, color: '#ff7300', percentage: 7 },
+    { name: 'Transportasi', value: 1200000, color: '#00ff88', percentage: 4 },
+    { name: 'Lainnya', value: 800000, color: '#ff0088', percentage: 3 },
+  ];
+
+  // Neraca khusus rumah makan
+  const balanceSheet = {
+    assets: {
+      current: {
+        kas: 15000000,
+        bankBCA: 45000000,
+        piutangCatering: 8500000,
+        persediaanBahan: 6500000,
+      },
+      fixed: {
+        peralatanDapur: 85000000,
+        mejaKursi: 25000000,
+        kendaraanDelivery: 120000000,
+        bangunanResto: 450000000,
+      }
+    },
+    liabilities: {
+      current: {
+        hutangSupplier: 4200000,
+        gajiTerutang: 3500000,
+        pajakTerutang: 2800000,
+      },
+      longTerm: {
+        kreditUsaha: 180000000,
+        sewaPancangLahan: 24000000,
+      }
+    }
+  };
+
+  // Calculations
+  const totalIncome = useMemo(() => 
+    transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)
+  , [transactions]);
+
+  const totalExpense = useMemo(() => 
+    transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)
+  , [transactions]);
+
+  const netIncome = totalIncome - totalExpense;
+
+  const totalAssets = useMemo(() => {
+    const current = Object.values(balanceSheet.assets.current).reduce((sum, val) => sum + val, 0);
+    const fixed = Object.values(balanceSheet.assets.fixed).reduce((sum, val) => sum + val, 0);
+    return current + fixed;
+  }, [balanceSheet]);
+
+  const totalLiabilities = useMemo(() => {
+    const current = Object.values(balanceSheet.liabilities.current).reduce((sum, val) => sum + val, 0);
+    const longTerm = Object.values(balanceSheet.liabilities.longTerm).reduce((sum, val) => sum + val, 0);
+    return current + longTerm;
+  }, [balanceSheet]);
+
+  const equity = totalAssets - totalLiabilities;
+
+  const totalDailySales = useMemo(() => {
+    const latest = dailySalesData[dailySalesData.length - 1];
+    return latest.dineIn + latest.takeaway + latest.online + latest.catering;
+  }, [dailySalesData]);
+
+  const avgDailyCustomers = 145;
+  const avgOrderValue = totalDailySales / avgDailyCustomers;
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const StatCard = ({ title, amount, icon: Icon, trend, color = 'blue', subtitle }) => (
+    <div className={`bg-white rounded-xl shadow-lg p-6 border-l-4 border-${color}-500 hover:shadow-xl transition-all duration-300`}>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-gray-600 text-sm font-medium">{title}</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">
+            {typeof amount === 'number' ? formatCurrency(amount) : amount}
+          </p>
+          {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
+          {trend && (
+            <p className={`text-sm mt-2 flex items-center ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {trend > 0 ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
+              {Math.abs(trend)}% dari minggu lalu
+            </p>
+          )}
+        </div>
+        <div className={`p-4 rounded-full bg-${color}-100`}>
+          <Icon className={`w-8 h-8 text-${color}-600`} />
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header with Brand */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="bg-gradient-to-r from-orange-600 to-red-600 p-3 rounded-xl">
+                <ChefHat className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Rumah Makan Chaniago</h1>
+                <p className="text-gray-600 mt-1">Dashboard Manajemen Keuangan - Masakan Padang Asli</p>
+              </div>
+            </div>
+            <div className="flex space-x-3">
+              <select 
+                value={dateRange} 
+                onChange={(e) => setDateRange(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              >
+                <option value="today">Hari Ini</option>
+                <option value="week">7 Hari</option>
+                <option value="month">30 Hari</option>
+                <option value="quarter">3 Bulan</option>
+              </select>
+              <button className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center transition-colors">
+                <Download className="w-4 h-4 mr-2" />
+                Export Laporan
+              </button>
+            </div>
+          </div>
+
+          {/* Navigation Tabs */}
+          <div className="border-b border-gray-200 bg-white rounded-t-xl px-6">
+            <nav className="-mb-px flex space-x-8">
+              {[
+                { id: 'overview', name: 'Overview', icon: Store },
+                { id: 'sales', name: 'Penjualan', icon: ShoppingCart },
+                { id: 'menu', name: 'Performa Menu', icon: Utensils },
+                { id: 'transactions', name: 'Transaksi', icon: DollarSign },
+                { id: 'balance', name: 'Neraca', icon: TrendingUp },
+                { id: 'reports', name: 'Laporan', icon: Calendar },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-orange-500 text-orange-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4 mr-2" />
+                  {tab.name}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+
+        {/* Overview Tab */}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            {/* Key Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <StatCard 
+                title="Penjualan Hari Ini" 
+                amount={totalDailySales} 
+                icon={ShoppingCart} 
+                trend={15.2}
+                color="green"
+                subtitle={`${avgDailyCustomers} pelanggan`}
+              />
+              <StatCard 
+                title="Rata-rata Per Order" 
+                amount={avgOrderValue} 
+                icon={Coffee} 
+                trend={8.5}
+                color="blue"
+                subtitle="Nilai pesanan rata-rata"
+              />
+              <StatCard 
+                title="Profit Bersih" 
+                amount={netIncome} 
+                icon={TrendingUp} 
+                trend={12.3}
+                color="purple"
+                subtitle="Keuntungan periode ini"
+              />
+              <StatCard 
+                title="Total Aset" 
+                amount={totalAssets} 
+                icon={Store} 
+                trend={5.1}
+                color="orange"
+                subtitle="Nilai total aset"
+              />
+            </div>
+
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Daily Sales Trend */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <TrendingUp className="w-5 h-5 mr-2 text-orange-600" />
+                  Trend Penjualan Harian
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={dailySalesData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis tickFormatter={(value) => `${value / 1000000}M`} />
+                    <Tooltip formatter={(value) => formatCurrency(value)} />
+                    <Legend />
+                    <Area type="monotone" dataKey="dineIn" stackId="1" stroke="#f97316" fill="#f97316" fillOpacity={0.8} name="Dine In" />
+                    <Area type="monotone" dataKey="takeaway" stackId="1" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.8} name="Takeaway" />
+                    <Area type="monotone" dataKey="online" stackId="1" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.8} name="Online" />
+                    <Area type="monotone" dataKey="catering" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.8} name="Catering" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Expense Breakdown */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Package className="w-5 h-5 mr-2 text-orange-600" />
+                  Komposisi Pengeluaran
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={expenseCategories}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percentage }) => `${name} ${percentage}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {expenseCategories.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => formatCurrency(value)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Recent Activity */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <Calendar className="w-5 h-5 mr-2 text-orange-600" />
+                  Aktivitas Terbaru
+                </h3>
+                <button className="px-4 py-2 text-orange-600 hover:text-orange-800 font-medium">
+                  Lihat Semua
+                </button>
+              </div>
+              <div className="space-y-4">
+                {transactions.slice(0, 4).map((transaction) => (
+                  <div key={transaction.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-4">
+                      <div className={`p-2 rounded-full ${
+                        transaction.type === 'income' ? 'bg-green-100' : 'bg-red-100'
+                      }`}>
+                        {transaction.type === 'income' ? 
+                          <ShoppingCart className={`w-4 h-4 text-green-600`} /> :
+                          <Package className={`w-4 h-4 text-red-600`} />
+                        }
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{transaction.category}</p>
+                        <p className="text-sm text-gray-600">{transaction.description}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(transaction.date).toLocaleDateString('id-ID')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`font-semibold ${
+                        transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                      </p>
+                      {transaction.items && (
+                        <p className="text-xs text-gray-500">{transaction.items} item</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Menu Performance Tab */}
+        {activeTab === 'menu' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <Utensils className="w-5 h-5 mr-2 text-orange-600" />
+                  Performa Menu Mingguan
+                </h3>
+                <div className="flex space-x-3">
+                  <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center">
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filter Menu
+                  </button>
+                  <button className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Tambah Menu
+                  </button>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* Best Sellers Chart */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">Menu Terlaris (Qty Terjual)</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={menuPerformance} layout="horizontal">
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" />
+                      <YAxis dataKey="menu" type="category" width={80} fontSize={12} />
+                      <Tooltip />
+                      <Bar dataKey="sold" fill="#f97316" radius={4} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Profit by Menu */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">Keuntungan per Menu</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={menuPerformance}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="menu" angle={-45} textAnchor="end" height={80} fontSize={11} />
+                      <YAxis tickFormatter={(value) => `${value / 1000000}M`} />
+                      <Tooltip formatter={(value) => formatCurrency(value)} />
+                      <Bar dataKey="profit" fill="#10b981" radius={4} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Detailed Menu Table */}
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead className="bg-orange-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-orange-800 uppercase">Menu</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-orange-800 uppercase">Qty Terjual</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-orange-800 uppercase">Revenue</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-orange-800 uppercase">Cost</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-orange-800 uppercase">Profit</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-orange-800 uppercase">Margin</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-orange-800 uppercase">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {menuPerformance.map((menu, index) => {
+                      const margin = ((menu.profit / menu.revenue) * 100).toFixed(1);
+                      const performance = menu.sold >= 70 ? 'excellent' : menu.sold >= 50 ? 'good' : 'average';
+                      return (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3">
+                                <Utensils className="w-4 h-4 text-orange-600" />
+                              </div>
+                              <span className="font-medium text-gray-900">{menu.menu}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{menu.sold}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(menu.revenue)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(menu.cost)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">{formatCurrency(menu.profit)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{margin}%</td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              performance === 'excellent' ? 'bg-green-100 text-green-800' :
+                              performance === 'good' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {performance === 'excellent' ? 'Sangat Baik' :
+                               performance === 'good' ? 'Baik' : 'Perlu Perhatian'}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Balance Sheet Tab */}
+        {activeTab === 'balance' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Assets */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
+                  ASET
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium text-gray-700 mb-2">Aset Lancar</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Kas</span>
+                        <span className="font-medium">{formatCurrency(balanceSheet.assets.current.kas)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Bank BCA</span>
+                        <span className="font-medium">{formatCurrency(balanceSheet.assets.current.bankBCA)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Piutang Catering</span>
+                        <span className="font-medium">{formatCurrency(balanceSheet.assets.current.piutangCatering)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Persediaan Bahan</span>
+                        <span className="font-medium">{formatCurrency(balanceSheet.assets.current.persediaanBahan)}</span>
+                      </div>
+                    </div>
+                    <div className="border-t pt-2 mt-2">
+                      <div className="flex justify-between items-center font-medium">
+                        <span>Total Aset Lancar</span>
+                        <span>{formatCurrency(Object.values(balanceSheet.assets.current).reduce((a, b) => a + b, 0))}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium text-gray-700 mb-2">Aset Tetap</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Peralatan Dapur</span>
+                        <span className="font-medium">{formatCurrency(balanceSheet.assets.fixed.peralatanDapur)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Meja Kursi</span>
+                        <span className="font-medium">{formatCurrency(balanceSheet.assets.fixed.mejaKursi)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Kendaraan Delivery</span>
+                        <span className="font-medium">{formatCurrency(balanceSheet.assets.fixed.kendaraanDelivery)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Bangunan Resto</span>
+                        <span className="font-medium">{formatCurrency(balanceSheet.assets.fixed.bangunanResto)}</span>
+                      </div>
+                    </div>
+                    <div className="border-t pt-2 mt-2">
+                      <div className="flex justify-between items-center font-medium">
+                        <span>Total Aset Tetap</span>
+                        <span>{formatCurrency(Object.values(balanceSheet.assets.fixed).reduce((a, b) => a + b, 0))}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t-2 border-gray-300 pt-3 mt-4">
+                    <div className="flex justify-between items-center text-lg font-bold text-green-600">
+                      <span>TOTAL ASET</span>
+                      <span>{formatCurrency(totalAssets)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Liabilities */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <TrendingDown className="w-5 h-5 mr-2 text-red-600" />
+                  KEWAJIBAN
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium text-gray-700 mb-2">Kewajiban Lancar</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Hutang Supplier</span>
+                        <span className="font-medium">{formatCurrency(balanceSheet.liabilities.current.hutangSupplier)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Gaji Terutang</span>
+                        <span className="font-medium">{formatCurrency(balanceSheet.liabilities.current.gajiTerutang)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Pajak Terutang</span>
+                        <span className="font-medium">{formatCurrency(balanceSheet.liabilities.current.pajakTerutang)}</span>
+                      </div>
+                    </div>
+                    <div className="border-t pt-2 mt-2">
+                      <div className="flex justify-between items-center font-medium">
+                        <span>Total Kewajiban Lancar</span>
+                        <span>{formatCurrency(Object.values(balanceSheet.liabilities.current).reduce((a, b) => a + b, 0))}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium text-gray-700 mb-2">Kewajiban Jangka Panjang</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Kredit Usaha</span>
+                        <span className="font-medium">{formatCurrency(balanceSheet.liabilities.longTerm.kreditUsaha)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Sewa Pancang Lahan</span>
+                        <span className="font-medium">{formatCurrency(balanceSheet.liabilities.longTerm.sewaPancangLahan)}</span>
+                      </div>
+                    </div>
+                    <div className="border-t pt-2 mt-2">
+                      <div className="flex justify-between items-center font-medium">
+                        <span>Total Kewajiban Jangka Panjang</span>
+                        <span>{formatCurrency(Object.values(balanceSheet.liabilities.longTerm).reduce((a, b) => a + b, 0))}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t-2 border-gray-300 pt-3 mt-4">
+                    <div className="flex justify-between items-center text-lg font-bold text-red-600">
+                      <span>TOTAL KEWAJIBAN</span>
+                      <span>{formatCurrency(totalLiabilities)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Equity */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <DollarSign className="w-5 h-5 mr-2 text-blue-600" />
+                  MODAL
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-gray-600">Modal Awal</span>
+                    <span className="font-medium">{formatCurrency(500000000)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-gray-600">Laba Ditahan</span>
+                    <span className="font-medium">{formatCurrency(equity - 500000000)}</span>
+                  </div>
+                  <div className="border-t-2 border-gray-300 pt-3 mt-4">
+                    <div className="flex justify-between items-center text-lg font-bold text-blue-600">
+                      <span>TOTAL MODAL</span>
+                      <span>{formatCurrency(equity)}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium text-blue-900 mb-2">Verifikasi Neraca</h4>
+                    <div className="text-sm">
+                      <div className="flex justify-between">
+                        <span>Total Aset:</span>
+                        <span className="font-medium">{formatCurrency(totalAssets)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Kewajiban + Modal:</span>
+                        <span className="font-medium">{formatCurrency(totalLiabilities + equity)}</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-blue-600 border-t pt-2 mt-2">
+                        <span>Selisih:</span>
+                        <span>{formatCurrency(Math.abs(totalAssets - (totalLiabilities + equity)))}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Financial Ratios */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <TrendingUp className="w-5 h-5 mr-2 text-orange-600" />
+                Rasio Keuangan
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <h4 className="font-medium text-green-800">Current Ratio</h4>
+                  <p className="text-2xl font-bold text-green-600 mt-2">
+                    {(Object.values(balanceSheet.assets.current).reduce((a, b) => a + b, 0) / 
+                      Object.values(balanceSheet.liabilities.current).reduce((a, b) => a + b, 0)).toFixed(2)}
+                  </p>
+                  <p className="text-sm text-green-700 mt-1">Likuiditas Baik</p>
+                </div>
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-medium text-blue-800">Debt to Equity</h4>
+                  <p className="text-2xl font-bold text-blue-600 mt-2">
+                    {(totalLiabilities / equity).toFixed(2)}
+                  </p>
+                  <p className="text-sm text-blue-700 mt-1">Leverage Terkendali</p>
+                </div>
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <h4 className="font-medium text-purple-800">Asset Turnover</h4>
+                  <p className="text-2xl font-bold text-purple-600 mt-2">
+                    {(totalIncome / totalAssets * 12).toFixed(2)}
+                  </p>
+                  <p className="text-sm text-purple-700 mt-1">Efisiensi Aset</p>
+                </div>
+                <div className="text-center p-4 bg-orange-50 rounded-lg">
+                  <h4 className="font-medium text-orange-800">Profit Margin</h4>
+                  <p className="text-2xl font-bold text-orange-600 mt-2">
+                    {((netIncome / totalIncome) * 100).toFixed(1)}%
+                  </p>
+                  <p className="text-sm text-orange-700 mt-1">Profitabilitas</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Transactions Tab */}
+        {activeTab === 'transactions' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <DollarSign className="w-5 h-5 mr-2 text-orange-600" />
+                  Semua Transaksi
+                </h3>
+                <div className="flex space-x-3">
+                  <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center">
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filter
+                  </button>
+                  <button className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Tambah Transaksi
+                  </button>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead className="bg-orange-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-orange-800 uppercase">ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-orange-800 uppercase">Tanggal</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-orange-800 uppercase">Kategori</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-orange-800 uppercase">Deskripsi</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-orange-800 uppercase">Jumlah</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-orange-800 uppercase">Jenis</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-orange-800 uppercase">Detail</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-orange-800 uppercase">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {transactions.map((transaction) => (
+                      <tr key={transaction.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{transaction.id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {new Date(transaction.date).toLocaleDateString('id-ID')}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.category}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
+                          <div className="truncate">{transaction.description}</div>
+                          {transaction.supplier && (
+                            <div className="text-xs text-gray-500">Supplier: {transaction.supplier}</div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <span className={transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}>
+                            {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            transaction.type === 'income' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {transaction.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
+                          {transaction.items && `${transaction.items} item`}
+                          {transaction.staff && `${transaction.staff} staff`}
+                          {transaction.portions && `${transaction.portions} porsi`}
+                          {transaction.orders && `${transaction.orders} order`}
+                          {transaction.trips && `${transaction.trips} trip`}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <button className="text-orange-600 hover:text-orange-900 mr-3">Edit</button>
+                          <button className="text-red-600 hover:text-red-900">Hapus</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Sales Tab */}
+        {activeTab === 'sales' && (
+          <div className="space-y-6">
+            {/* Sales Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl shadow-lg p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-orange-100 text-sm font-medium">Dine In</p>
+                    <p className="text-2xl font-bold mt-1">{formatCurrency(3800000)}</p>
+                    <p className="text-orange-200 text-sm mt-1">65 pelanggan</p>
+                  </div>
+                  <Store className="w-8 h-8 text-orange-200" />
+                </div>
+              </div>
+              <div className="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl shadow-lg p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-blue-100 text-sm font-medium">Takeaway</p>
+                    <p className="text-2xl font-bold mt-1">{formatCurrency(2400000)}</p>
+                    <p className="text-blue-200 text-sm mt-1">42 order</p>
+                  </div>
+                  <Package className="w-8 h-8 text-blue-200" />
+                </div>
+              </div>
+              <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-lg p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-purple-100 text-sm font-medium">Online</p>
+                    <p className="text-2xl font-bold mt-1">{formatCurrency(1500000)}</p>
+                    <p className="text-purple-200 text-sm mt-1">28 order</p>
+                  </div>
+                  <Users className="w-8 h-8 text-purple-200" />
+                </div>
+              </div>
+              <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl shadow-lg p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-green-100 text-sm font-medium">Catering</p>
+                    <p className="text-2xl font-bold mt-1">{formatCurrency(0)}</p>
+                    <p className="text-green-200 text-sm mt-1">0 event</p>
+                  </div>
+                  <ChefHat className="w-8 h-8 text-green-200" />
+                </div>
+              </div>
+            </div>
+
+            {/* Detailed Sales Chart */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <ShoppingCart className="w-5 h-5 mr-2 text-orange-600" />
+                Tren Penjualan 7 Hari Terakhir
+              </h3>
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={dailySalesData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis tickFormatter={(value) => `${value / 1000000}M`} />
+                  <Tooltip formatter={(value) => formatCurrency(value)} />
+                  <Legend />
+                  <Line type="monotone" dataKey="dineIn" stroke="#f97316" strokeWidth={3} name="Dine In" />
+                  <Line type="monotone" dataKey="takeaway" stroke="#06b6d4" strokeWidth={3} name="Takeaway" />
+                  <Line type="monotone" dataKey="online" stroke="#8b5cf6" strokeWidth={3} name="Online" />
+                  <Line type="monotone" dataKey="catering" stroke="#10b981" strokeWidth={3} name="Catering" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {/* Reports Tab */}
+        {activeTab === 'reports' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Income Statement */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <TrendingUp className="w-5 h-5 mr-2 text-orange-600" />
+                  Laporan Laba Rugi (Bulan Ini)
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="font-medium text-gray-900">PENDAPATAN</span>
+                    <span className="font-bold text-green-600">{formatCurrency(totalIncome)}</span>
+                  </div>
+                  <div className="ml-4 space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Penjualan Dine-in</span>
+                      <span>{formatCurrency(totalIncome * 0.4)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Penjualan Takeaway</span>
+                      <span>{formatCurrency(totalIncome * 0.25)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Penjualan Online</span>
+                      <span>{formatCurrency(totalIncome * 0.15)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Catering</span>
+                      <span>{formatCurrency(totalIncome * 0.2)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center py-2 border-b mt-4">
+                    <span className="font-medium text-gray-900">BEBAN OPERASIONAL</span>
+                    <span className="font-bold text-red-600">{formatCurrency(totalExpense)}</span>
+                  </div>
+                  <div className="ml-4 space-y-2 text-sm">
+                    {expenseCategories.map((category) => (
+                      <div key={category.name} className="flex justify-between">
+                        <span className="text-gray-600">{category.name}</span>
+                        <span>{formatCurrency(category.value)}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-between items-center py-3 border-t-2 border-gray-300 mt-4">
+                    <span className="font-bold text-gray-900">LABA BERSIH</span>
+                    <span className={`font-bold text-lg ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(netIncome)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cash Flow */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <DollarSign className="w-5 h-5 mr-2 text-orange-600" />
+                  Arus Kas (Bulan Ini)
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="font-medium text-gray-900">ARUS KAS OPERASI</span>
+                    <span className="font-bold text-green-600">{formatCurrency(netIncome + 2000000)}</span>
+                  </div>
+                  <div className="ml-4 space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Penerimaan dari pelanggan</span>
+                      <span>{formatCurrency(totalIncome)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Pembayaran ke supplier</span>
+                      <span className="text-red-600">-{formatCurrency(12500000)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Pembayaran gaji</span>
+                      <span className="text-red-600">-{formatCurrency(8500000)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Pembayaran operasional lain</span>
+                      <span className="text-red-600">-{formatCurrency(6800000)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center py-3 border-t-2 border-gray-300 mt-4">
+                    <span className="font-bold text-gray-900">KENAIKAN KAS BERSIH</span>
+                    <span className="font-bold text-lg text-blue-600">
+                      {formatCurrency((netIncome + 2000000) - 5000000)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ChaniagoDashboard;
