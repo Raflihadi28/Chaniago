@@ -57,9 +57,10 @@ function Router() {
   if (!isAuthenticated) {
     return (
       <Switch>
-        <Route path="/" component={Landing} />
-        <Route path="/home" component={Home} />
-        <Route component={Landing} />
+         <Route path="/" component={Dashboard} />
+         <Route path="/landing" component={Landing} />
+         <Route path="/home" component={Home} />
+         <Route component={Dashboard} />
       </Switch>
     );
   }
